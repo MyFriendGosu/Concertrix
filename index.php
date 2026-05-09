@@ -60,17 +60,18 @@ if (isset($_SESSION['user_id'])) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 8%;
+            padding: 0 8%;
             background: var(--nav-bg);
             backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
             z-index: 1000;
             border-bottom: 1px solid var(--glass-border);
+            height: 80px;
         }
 
         .logo { font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; }
-        .nav-links { display: flex; align-items: center; gap: 2.5rem; }
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
         .nav-links a { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; }
         .nav-links a:hover { color: var(--accent-primary); }
 
@@ -87,6 +88,7 @@ if (isset($_SESSION['user_id'])) {
             width: 50px; height: 26px; background: var(--glass-border);
             border-radius: 50px; position: relative; cursor: pointer;
             display: flex; align-items: center; padding: 0 5px; justify-content: space-between;
+            margin-left: 10px;
         }
 
         .switch-dot {
@@ -97,13 +99,12 @@ if (isset($_SESSION['user_id'])) {
 
         /* --- Hero Section --- */
         .hero {
-            height: 65vh;
+            height: 60vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            /* Updated to use Concert.png from your assets */
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
                         url('<?php echo $root; ?>assets/images/Concert.png');
             background-size: cover;
@@ -112,42 +113,56 @@ if (isset($_SESSION['user_id'])) {
             padding: 2rem;
         }
 
-        .hero-badge {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 20px;
-            border-radius: 50px;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            font-weight: 700;
-            font-size: 0.7rem;
-            margin-bottom: 20px;
-        }
-
-        .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; }
+        .hero h1 { font-size: 3rem; font-weight: 800; line-height: 1.1; }
 
         /* --- Content Grid --- */
-        .container { padding: 80px 8%; }
+        .container { padding: 60px 8%; }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
             margin-top: 30px;
         }
 
         .concert-card {
             background: var(--surface);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
         .concert-card:hover { transform: translateY(-5px); }
-        .card-image { height: 180px; width: 100%; object-fit: cover; }
-        .card-content { padding: 20px; }
-        .price { color: var(--accent-primary); font-weight: 800; font-size: 1.2rem; }
+
+        /* --- REDUCED IMAGE SIZE --- */
+        .card-image-wrapper {
+            width: 100%;
+            height: 160px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-content { padding: 18px; flex-grow: 1; }
+        
+        .date-badge {
+            font-size: 0.65rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 5px;
+            display: block;
+        }
     </style>
 </head>
 <body class="dark">
@@ -161,29 +176,21 @@ if (isset($_SESSION['user_id'])) {
     <div class="nav-links">
         <a href="#">HOME</a>
         <a href="#concerts">CONCERTS</a>
-        <a href="#">ABOUT</a>
-        
-        <div class="theme-switch" id="themeToggle">
-            <span class="material-symbols-outlined" style="font-size: 14px;">light_mode</span>
-            <span class="material-symbols-outlined" style="font-size: 14px;">dark_mode</span>
-            <div class="switch-dot"></div>
-        </div>
-
         <a href="<?php echo $root; ?>auth/login.php">LOGIN</a>
         <a href="<?php echo $root; ?>auth/register.php" class="btn-register">REGISTER</a>
+        
+        <div class="theme-switch" id="themeToggle">
+            <div class="switch-dot"></div>
+        </div>
     </div>
 </nav>
 
 <section class="hero">
-    <div class="hero-badge">Live Experience</div>
     <h1>Feel the Music.<br>Live the Moment.</h1>
 </section>
 
 <main class="container" id="concerts">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-weight: 800;">UPCOMING CONCERTS</h2>
-        <a href="<?php echo $root; ?>pages/home.php" style="color: var(--accent-primary); text-decoration: none; font-weight: 700;">View All</a>
-    </div>
+    <h2 style="font-weight: 800; letter-spacing: -1px;">UPCOMING CONCERTS</h2>
 
     <div class="grid">
         <?php
@@ -192,26 +199,22 @@ if (isset($_SESSION['user_id'])) {
         
         if ($result && $result->num_rows > 0):
             while ($row = $result->fetch_assoc()):
-                // Fallback logic for images
                 $img_path = !empty($row['image']) ? "assets/images/concerts/".$row['image'] : "assets/images/Concert.png";
         ?>
             <div class="concert-card">
-                <img src="<?php echo $root . $img_path; ?>" class="card-image" alt="Concert">
+                <div class="card-image-wrapper">
+                    <img src="<?php echo $root . $img_path; ?>" class="card-image" alt="Concert">
+                </div>
                 <div class="card-content">
-                    <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
-                        <?php echo date('M d, Y', strtotime($row['concert_date'])); ?>
-                    </p>
-                    <h3 style="margin: 5px 0 15px 0;"><?php echo htmlspecialchars($row['concert_name']); ?></h3>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="price">₱<?php echo number_format($row['price'], 0); ?></span>
-                        <a href="<?php echo $root; ?>auth/login.php" class="material-symbols-outlined" style="text-decoration: none; color: var(--text-muted);">arrow_forward</a>
+                    <span class="date-badge"><?php echo date('M d, Y', strtotime($row['concert_date'])); ?></span>
+                    <h3 style="margin: 5px 0 15px 0; font-size: 1.1rem;"><?php echo htmlspecialchars($row['concert_name']); ?></h3>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <a href="<?php echo $root; ?>auth/login.php" class="material-symbols-outlined" style="text-decoration: none; color: var(--accent-primary); font-weight: 800;">arrow_forward</a>
                     </div>
                 </div>
             </div>
         <?php 
             endwhile;
-        else:
-            echo "<p style='color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;'>No concerts currently scheduled. Check back soon!</p>";
         endif; 
         ?>
     </div>
@@ -221,7 +224,6 @@ if (isset($_SESSION['user_id'])) {
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
 
-    // Persist theme preference
     if (localStorage.getItem('theme') === 'light') {
         body.classList.remove('dark');
     }
