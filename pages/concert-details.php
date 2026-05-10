@@ -6,7 +6,6 @@ if (session_status() === PHP_SESSION_NONE) {
 include_once __DIR__ . '/../config/db.php';
 $root = "/concert_ticketing_system/"; 
 
-// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . $root . "auth/login.php");
     exit;
@@ -32,7 +31,6 @@ if (!$concert) {
 }
 
 $img_path = !empty($concert['image']) ? "assets/images/concerts/".$concert['image'] : "assets/images/Concert.png";
-$formatted_date = (strtotime($concert['concert_date'])) ? date('j M Y', strtotime($concert['concert_date'])) : $concert['concert_date'];
 ?>
 
 <!DOCTYPE html>
@@ -50,33 +48,33 @@ $formatted_date = (strtotime($concert['concert_date'])) ? date('j M Y', strtotim
             --bg-body: #f8fafc;
             --surface: #ffffff;
             --accent-primary: #0052ff;
-            --accent-gradient: linear-gradient(135deg, #0052ff 0%, #00c2ff 100%);
             --text-main: #0f172a;
             --text-muted: #64748b;
             --glass-border: rgba(0, 0, 0, 0.05);
             --nav-bg: rgba(255, 255, 255, 0.8);
+            --brand-navy: #001571; 
         }
 
         body.dark {
             --bg-body: #020617;
             --surface: #0f172a;
             --accent-primary: #3b82f6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --glass-border: rgba(255, 255, 255, 0.1);
             --nav-bg: rgba(2, 6, 23, 0.8);
+            --brand-navy: #1e3a8a;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
+            transition: background 0.3s ease;
         }
 
-        /* Nav Bar - Synchronized with home.php */
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 8%; background: var(--nav-bg); backdrop-filter: blur(12px);
@@ -86,92 +84,80 @@ $formatted_date = (strtotime($concert['concert_date'])) ? date('j M Y', strtotim
 
         .logo { font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; }
         
-        /* Container and Card Style (Referencing image_855514.png) */
-        .container { padding: 40px 8%; max-width: 1200px; margin: 0 auto; }
+        .container { padding: 40px 8%; max-width: 1100px; margin: 0 auto; }
 
-        .details-card {
+        /* --- Hero Section --- */
+        .hero-card {
             background: var(--surface);
-            border-radius: 16px;
+            border-radius: 24px;
             overflow: hidden;
             border: 1px solid var(--glass-border);
+            margin-bottom: 40px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .image-container {
-            width: 100%;
-            height: 450px;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 450px;
+            background: #000; display: flex;
+            align-items: center; justify-content: center;
         }
 
-        .hero-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Ensures the image fits properly as requested */
-        }
+        .hero-image { width: 100%; height: 100%; object-fit: cover; }
 
-        .content-panel { padding: 40px; }
+        .hero-content { padding: 40px; }
+        .blue-divider { width: 45px; height: 4px; background: #00c2ff; margin-bottom: 20px; border-radius: 2px; }
+        .concert-title { font-size: 3rem; font-weight: 800; margin-bottom: 15px; letter-spacing: -1.5px; }
 
-        .date-label { font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; }
-        
-        .blue-divider {
-            width: 50px; height: 4px; background: #00c2ff; margin-bottom: 25px; border-radius: 2px;
-        }
-
-        .concert-title { font-size: 2.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; letter-spacing: -1px; }
-
-        .venue-info {
-            display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600; margin-bottom: 30px;
-        }
-
-        /* Zones Grid */
-        .zones-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-top: 40px;
-            border-top: 1px solid var(--glass-border);
-            padding-top: 40px;
-        }
-
-        .zone-item {
-            background: var(--bg-body);
-            padding: 25px;
-            border-radius: 12px;
+        /* --- Schedule Section (ss4.PNG Style) --- */
+        .about-section {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 40px;
             border: 1px solid var(--glass-border);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
         }
 
-        .zone-header { font-weight: 800; font-size: 1.1rem; }
-        .price-tag { font-size: 1.8rem; font-weight: 800; color: var(--accent-primary); }
+        .section-header {
+            font-size: 1.8rem; font-weight: 700; text-transform: uppercase;
+            margin-bottom: 35px; color: var(--text-main); letter-spacing: 0.5px;
+        }
+
+        .schedule-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 25px 0; border-bottom: 1px solid var(--glass-border);
+        }
+
+        .schedule-row:last-child { border-bottom: none; }
+
+        .schedule-info h3 { 
+            font-size: 1.6rem; font-weight: 500; color: var(--text-main); margin-bottom: 2px; 
+        }
         
-        /* Buy Ticket Button Style - Referencing image_855514.png */
-        .buy-btn {
-            background: #0052ff;
+        .venue-text { 
+            font-size: 1.25rem; color: var(--text-main); font-weight: 400; margin-bottom: 8px;
+        }
+
+        .zone-details { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* --- Navy Button Style --- */
+        .buy-tickets-btn {
+            background-color: var(--brand-navy);
             color: #fff;
             text-decoration: none;
             padding: 14px 28px;
-            border-radius: 50px;
-            font-weight: 800;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: transform 0.2s ease, filter 0.2s ease;
-            border: none;
-            cursor: pointer;
+            gap: 10px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        .buy-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .buy-btn:disabled { background: var(--text-muted); cursor: not-allowed; }
+        .buy-tickets-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 
         @media (max-width: 768px) {
-            .image-container { height: 300px; }
-            .concert-title { font-size: 2rem; }
+            .schedule-row { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .buy-tickets-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -189,49 +175,52 @@ $formatted_date = (strtotime($concert['concert_date'])) ? date('j M Y', strtotim
 </nav>
 
 <main class="container">
-    <div class="details-card">
+    <div class="hero-card">
         <div class="image-container">
             <img src="<?php echo $root . $img_path; ?>" class="hero-image" alt="Concert Poster">
         </div>
-
-        <div class="content-panel">
-            <p class="date-label"><?php echo $formatted_date; ?></p>
+        <div class="hero-content">
             <div class="blue-divider"></div>
-            
             <h1 class="concert-title"><?php echo htmlspecialchars($concert['concert_name']); ?></h1>
-            
-            <div class="venue-info">
-                <span class="material-symbols-outlined">location_on</span>
-                <?php echo htmlspecialchars($concert['venue']); ?> • <?php echo htmlspecialchars($concert['concert_time']); ?>
-            </div>
-
-            <p style="color: var(--text-muted); line-height: 1.8; max-width: 800px;">
+            <p style="color: var(--text-muted); line-height: 1.8; max-width: 850px;">
                 <?php echo nl2br(htmlspecialchars($concert['description'])); ?>
             </p>
+        </div>
+    </div>
 
-            <div class="zones-grid">
-                <?php while ($z = $zones->fetch_assoc()): 
-                    $sold_out = $z['available_slots'] <= 0;
-                ?>
-                    <div class="zone-item">
-                        <div>
-                            <div class="zone-header"><?php echo htmlspecialchars($z['zone_name']); ?></div>
-                            <div class="price-tag">₱<?php echo number_format($z['price'], 2); ?></div>
-                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">
-                                <?php echo $sold_out ? "SOLD OUT" : $z['available_slots'] . " TICKETS REMAINING"; ?>
-                            </div>
-                        </div>
+    <div class="about-section">
+        <h2 class="section-header">About This Event</h2>
 
-                        <?php if (!$sold_out): ?>
-                            <a href="buy-ticket.php?id=<?php echo $concert['id']; ?>&zone_id=<?php echo $z['id']; ?>" class="buy-btn">
-                                Buy tickets <span class="material-symbols-outlined">confirmation_number</span>
-                            </a>
-                        <?php else: ?>
-                            <button class="buy-btn" disabled>Unavailable</button>
-                        <?php endif; ?>
+        <div class="schedule-list">
+            <?php 
+            while ($z = $zones->fetch_assoc()): 
+                // Format: Friday, May 15 | 7:30 PM
+                $formatted_date = date('l, F j', strtotime($concert['concert_date']));
+                $formatted_time = date('g:i A', strtotime($concert['concert_time']));
+                
+                $sold_out = $z['available_slots'] <= 0;
+            ?>
+                <div class="schedule-row">
+                    <div class="schedule-info">
+                        <h3><?php echo $formatted_date; ?> | <?php echo $formatted_time; ?></h3>
+                        <p class="venue-text"><?php echo htmlspecialchars($concert['venue']); ?></p>
+                        <p class="zone-details">
+                            <?php echo htmlspecialchars($z['zone_name']); ?> • ₱<?php echo number_format($z['price'], 2); ?>
+                            <?php if (!$sold_out): ?>
+                                <span style="margin-left:8px; color: #10b981;">(<?php echo $z['available_slots']; ?> left)</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
-                <?php endwhile; ?>
-            </div>
+
+                    <?php if (!$sold_out): ?>
+                        <a href="buy-ticket.php?id=<?php echo $concert['id']; ?>&zone_id=<?php echo $z['id']; ?>" class="buy-tickets-btn">
+                            BUY TICKETS <span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
+                        </a>
+                    <?php else: ?>
+                        <button class="buy-tickets-btn" style="background: #94a3b8; cursor: not-allowed;" disabled>SOLD OUT</button>
+                    <?php endif; ?>
+                </div>
+            <?php endwhile; ?>
         </div>
     </div>
 </main>
@@ -239,9 +228,9 @@ $formatted_date = (strtotime($concert['concert_date'])) ? date('j M Y', strtotim
 <script>
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
-
+    
     if (localStorage.getItem('theme') === 'light') body.classList.remove('dark');
-
+    
     themeToggle.addEventListener('click', () => {
         body.classList.toggle('dark');
         localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');

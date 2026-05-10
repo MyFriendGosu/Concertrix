@@ -174,7 +174,13 @@ if (isset($_POST['add_zone'])) {
 
             <div class="form-group">
                 <label>Zone Name</label>
-                <input type="text" name="zone_name" placeholder="e.g. VIP Standing, Lower Box A" required>
+                <select name="zone_name" required>
+                    <option value="" disabled selected>Select seat category</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Lower Box">Lower Box</option>
+                    <option value="Upper Box">Upper Box</option>
+                    <option value="General Admission">General Admission</option>
+                </select>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -194,7 +200,6 @@ if (isset($_POST['add_zone'])) {
 </main>
 
 <script>
-    // Keep dark mode state from home/dashboard
     if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
 </script>
 </body>

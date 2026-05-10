@@ -3,13 +3,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include_once __DIR__ . '/config/db.php';
+include_once __DIR__ . '/../config/db.php';
+
+// The absolute root of your project
 $root = "/concert_ticketing_system/"; 
 
-// Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: " . $root . ($_SESSION['role'] === 'admin' ? "admin/dashboard.php" : "pages/home.php"));
-    exit;
+    $user_name = $_SESSION['user_name'] ?? 'User';
 }
 ?>
 
@@ -20,7 +20,6 @@ if (isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concertix | Live the Moment</title>
     
-    <!-- External Assets -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     
@@ -57,30 +56,21 @@ if (isset($_SESSION['user_id'])) {
 
         /* --- Navigation --- */
         nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 8%;
-            background: var(--nav-bg);
-            backdrop-filter: blur(12px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 8%; background: var(--nav-bg); backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--glass-border);
             height: 80px;
         }
 
         .logo { font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; }
-        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links { display: flex; align-items: center; gap: 2.5rem; }
         .nav-links a { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; }
-        .nav-links a:hover { color: var(--accent-primary); }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-primary); }
 
-        .btn-register {
+        .btn-action-nav {
             background: var(--accent-gradient);
             color: #ffffff !important;
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-weight: 700;
+            padding: 10px 24px; border-radius: 10px; font-weight: 700;
             box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.3);
         }
 
@@ -88,7 +78,6 @@ if (isset($_SESSION['user_id'])) {
             width: 50px; height: 26px; background: var(--glass-border);
             border-radius: 50px; position: relative; cursor: pointer;
             display: flex; align-items: center; padding: 0 5px; justify-content: space-between;
-            margin-left: 10px;
         }
 
         .switch-dot {
@@ -97,83 +86,67 @@ if (isset($_SESSION['user_id'])) {
         }
         body.dark .switch-dot { transform: translateX(24px); }
 
-        /* --- Hero Section --- */
-        .hero {
-            height: 50vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                        url('<?php echo $root; ?>assets/images/Concert.png');
-            background-size: cover;
-            background-position: center;
-            color: white;
-            padding: 2rem;
-        }
-
-        .hero h1 { font-size: 3rem; font-weight: 800; line-height: 1.1; }
-
         /* --- Content Grid --- */
         .container { padding: 60px 8%; }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; margin-top: 30px;
         }
 
         .concert-card {
             background: var(--surface);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            overflow: hidden;
+            border-radius: 20px; overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
         }
         .concert-card:hover { transform: translateY(-5px); }
 
-        .card-image-wrapper {
-            width: 100%;
-            height: 160px;
-            background: #000;
-            overflow: hidden;
-        }
+        .card-image-wrapper { width: 100%; height: 180px; background: #000; overflow: hidden; }
+        .card-image { width: 100%; height: 100%; object-fit: cover; }
+        .card-content { padding: 20px; }
 
-        .card-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .card-content { padding: 18px; flex-grow: 1; }
-        
         .date-badge {
-            font-size: 0.65rem;
-            color: var(--accent-primary);
-            text-transform: uppercase;
-            font-weight: 800;
-            margin-bottom: 5px;
-            display: block;
+            font-size: 0.65rem; color: var(--accent-primary);
+            text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block;
         }
+
+        /* --- Action Arrow UI --- */
+        .arrow-action-wrapper {
+            display: flex; justify-content: flex-end; align-items: center;
+            margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-arrow {
+            text-decoration: none; color: var(--accent-primary);
+            width: 38px; height: 38px; display: flex; align-items: center;
+            justify-content: center; border-radius: 50%;
+            background: rgba(99, 102, 241, 0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-arrow:hover { background: var(--accent-primary); color: #ffffff !important; transform: translateX(5px); }
+        .btn-arrow .material-symbols-outlined { font-size: 20px; font-weight: 800; }
     </style>
 </head>
 <body class="dark">
 
 <nav>
-    <a href="#" class="logo">
+    <a href="home.php" class="logo">
         <span class="material-symbols-outlined" style="color: var(--accent-primary)">theater_comedy</span>
         CONCERTIX
     </a>
     
     <div class="nav-links">
-        <a href="#">HOME</a>
-        <a href="#concerts">CONCERTS</a>
-        <a href="<?php echo $root; ?>auth/login.php">LOGIN</a>
-        <a href="<?php echo $root; ?>auth/register.php" class="btn-register">REGISTER</a>
+        <a href="home.php" class="active">EXPLORE</a>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="my-tickets.php">MY TICKETS</a>
+            <a href="profile.php">PROFILE</a>
+            <a href="<?php echo $root; ?>auth/logout.php" class="btn-action-nav">LOGOUT</a>
+        <?php else: ?>
+            <a href="<?php echo $root; ?>auth/login.php">LOGIN</a>
+            <a href="<?php echo $root; ?>auth/register.php" class="btn-action-nav">REGISTER</a>
+        <?php endif; ?>
         
         <div class="theme-switch" id="themeToggle">
             <div class="switch-dot"></div>
@@ -181,23 +154,17 @@ if (isset($_SESSION['user_id'])) {
     </div>
 </nav>
 
-<section class="hero">
-    <h1>Feel the Music.<br>Live the Moment.</h1>
-</section>
-
 <main class="container" id="concerts">
-    <h2 style="font-weight: 800; letter-spacing: -1px;">UPCOMING CONCERTS</h2>
+    <h2 style="font-weight: 800; letter-spacing: -1px; font-size: 2rem;">UPCOMING EVENTS</h2>
 
     <div class="grid">
         <?php
-        $query = "SELECT * FROM concerts ORDER BY concert_date ASC LIMIT 4";
+        $query = "SELECT * FROM concerts ORDER BY concert_date ASC LIMIT 8";
         $result = $conn->query($query);
         
         if ($result && $result->num_rows > 0):
             while ($row = $result->fetch_assoc()):
                 $img_path = !empty($row['image']) ? "assets/images/concerts/".$row['image'] : "assets/images/Concert.png";
-                
-                // ternary logic to handle VARCHAR dates safely
                 $formatted_date = (strtotime($row['concert_date'])) ? date('j M Y', strtotime($row['concert_date'])) : $row['concert_date'];
         ?>
             <div class="concert-card">
@@ -206,9 +173,12 @@ if (isset($_SESSION['user_id'])) {
                 </div>
                 <div class="card-content">
                     <span class="date-badge"><?php echo $formatted_date; ?></span>
-                    <h3 style="margin: 5px 0 15px 0; font-size: 1.1rem;"><?php echo htmlspecialchars($row['concert_name']); ?></h3>
-                    <div style="display: flex; justify-content: flex-end;">
-                        <a href="<?php echo $root; ?>auth/login.php" class="material-symbols-outlined" style="text-decoration: none; color: var(--accent-primary); font-weight: 800;">arrow_forward</a>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; min-height: 2.8rem;"><?php echo htmlspecialchars($row['concert_name']); ?></h3>
+                    
+                    <div class="arrow-action-wrapper">
+                        <a href="<?php echo $root; ?>pages/concert-details.php?id=<?php echo $row['id']; ?>" class="btn-arrow">
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -223,9 +193,7 @@ if (isset($_SESSION['user_id'])) {
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
 
-    if (localStorage.getItem('theme') === 'light') {
-        body.classList.remove('dark');
-    }
+    if (localStorage.getItem('theme') === 'light') body.classList.remove('dark');
 
     themeToggle.addEventListener('click', () => {
         body.classList.toggle('dark');
