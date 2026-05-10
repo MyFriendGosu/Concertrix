@@ -41,11 +41,14 @@ if (isset($_POST['update'])) {
     $desc = $_POST['description'];
     
     // Image Handling
-    $image_name = $concert['image']; // Default to old image
+    $image_name = $concert['image']; 
     if (!empty($_FILES['image']['name'])) {
-        $target = "../assets/images/concerts/" . basename($_FILES['image']['name']);
-        if (move_uploaded_file($_FILES['image']['tmp_path'], $target)) {
-            $image_name = $_FILES['image']['name'];
+        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $new_name = time() . "_" . uniqid() . "." . $ext;
+        $target = "../assets/images/concerts/" . $new_name;
+        
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+            $image_name = $new_name;
         }
     }
 
@@ -55,7 +58,7 @@ if (isset($_POST['update'])) {
     if ($update_stmt->execute()) {
         $message = "Concert updated successfully!";
         $status = "success";
-        // Refresh data
+        // Refresh data for the form
         $concert['concert_name'] = $name;
         $concert['concert_date'] = $date;
         $concert['concert_time'] = $time;
@@ -83,14 +86,14 @@ if (isset($_POST['update'])) {
         :root {
             --bg-body: #020617;
             --surface: #0f172a;
-            --accent-primary: #3b82f6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+            --accent-primary: #818cf8;
+            --accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.2s ease; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -126,7 +129,7 @@ if (isset($_POST['update'])) {
         .form-group { margin-bottom: 20px; }
         label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
 
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             padding: 14px 18px;
             background: rgba(255, 255, 255, 0.03);
@@ -138,7 +141,7 @@ if (isset($_POST['update'])) {
             outline: none;
         }
 
-        input:focus, textarea:focus { border-color: var(--accent-primary); }
+        input:focus, textarea:focus { border-color: var(--accent-primary); background: rgba(255, 255, 255, 0.06); }
 
         .image-preview-box {
             display: flex;
@@ -158,23 +161,25 @@ if (isset($_POST['update'])) {
             border: 1px solid var(--glass-border);
         }
 
+        /* UPDATED: Save Button Styling */
         .save-btn {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: var(--accent-gradient);
             border: none;
             border-radius: 12px;
             color: white;
-            font-weight: 800;
+            font-weight: 600; /* Normal font weight */
             font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
         }
 
-        .save-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .save-btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(129, 140, 248, 0.3); }
 
         .alert {
             padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 0.85rem; font-weight: 600;
@@ -241,16 +246,13 @@ if (isset($_POST['update'])) {
                 <div class="form-group full-width">
                     <label>Update Poster Image</label>
                     <div class="image-preview-box">
-                        <img src="../assets/images/concerts/<?php echo $concert['image'] ?: 'Concert.png'; ?>" class="current-poster">
+                        <img src="../assets/images/concerts/<?php echo !empty($concert['image']) ? $concert['image'] : 'Concert.png'; ?>" class="current-poster">
                         <input type="file" name="image" accept="image/*">
                     </div>
                 </div>
             </div>
 
-            <button type="submit" name="update" class="save-btn">
-                Save Changes 
-                <span class="material-symbols-outlined" style="font-size: 20px;">save</span>
-            </button>
+            <button type="submit" name="update" class="save-btn">Save Changes</button>
         </form>
     </div>
 

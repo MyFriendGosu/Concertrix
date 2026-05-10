@@ -77,7 +77,7 @@ if (isset($_POST['update_profile'])) {
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.3s ease; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -118,7 +118,16 @@ if (isset($_POST['update_profile'])) {
         .header h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: -1px; }
 
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        label { 
+            display: block; 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            margin-bottom: 8px; 
+            letter-spacing: 1.5px; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
         input {
             width: 100%;
@@ -132,22 +141,32 @@ if (isset($_POST['update_profile'])) {
             outline: none;
         }
 
-        input:focus { border-color: var(--accent-primary); }
+        input:focus { border-color: var(--accent-primary); background: rgba(255, 255, 255, 0.05); }
 
+        /* ENHANCED: Save Changes Button */
         .update-btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: var(--accent-gradient);
             border: none;
             border-radius: 12px;
             color: white;
-            font-weight: 800;
-            font-size: 1rem;
+            font-family: 'Plus Jakarta Sans', sans-serif; /* Explicit family */
+            font-weight: 800; /* Matching label aesthetic */
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px; /* Consistent with modern tracking */
             cursor: pointer;
             margin-top: 10px;
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+            transition: 0.3s all ease;
         }
 
-        .update-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .update-btn:hover { 
+            filter: brightness(1.1); 
+            transform: translateY(-2px); 
+            box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.5); 
+        }
 
         .alert {
             padding: 12px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 0.85rem; font-weight: 600;
@@ -195,8 +214,8 @@ if (isset($_POST['update_profile'])) {
             <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 25px 0;">
 
             <div class="form-group">
-                <label>New Password (Leave blank to keep current)</label>
-                <input type="password" name="new_password" placeholder="••••••••">
+                <label>New Password</label>
+                <input type="password" name="new_password" placeholder="Leave blank to keep current">
             </div>
 
             <button type="submit" name="update_profile" class="update-btn">Save Changes</button>

@@ -2,48 +2,28 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 include_once __DIR__ . '/../config/db.php';
+
 $root = "/concert_ticketing_system/";
 
-// Admin Authorization Check
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: " . $root . "auth/login.php");
+// Admin Authorization
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: " . $root . "index.php");
     exit;
 }
 
-$concert_id = $_GET['id'] ?? null;
-if (!$concert_id) {
+// Handle Delete
+if (isset($_GET['delete_id'])) {
+    $id = intval($_GET['delete_id']);
+    $conn->query("DELETE FROM concerts WHERE id = $id");
     header("Location: manage-concerts.php");
     exit;
 }
 
-// Fetch Concert Details for header
-$stmt = $conn->prepare("SELECT concert_name FROM concerts WHERE id = ?");
-$stmt->bind_param("i", $concert_id);
-$stmt->execute();
-$concert = $stmt->get_result()->fetch_assoc();
-
-// Handle Add Zone
-if (isset($_POST['add_zone'])) {
-    $name = $_POST['zone_name'];
-    $price = $_POST['price'];
-    $slots = $_POST['available_slots'];
-
-    $add_stmt = $conn->prepare("INSERT INTO seat_zones (concert_id, zone_name, price, available_slots) VALUES (?, ?, ?, ?)");
-    $add_stmt->bind_param("isdi", $concert_id, $name, $price, $slots);
-    $add_stmt->execute();
-}
-
-// Handle Delete Zone
-if (isset($_GET['delete_id'])) {
-    $id = $_GET['delete_id'];
-    $conn->query("DELETE FROM seat_zones WHERE id = '$id'");
-    header("Location: manage-zones.php?id=" . $concert_id);
-}
-
-// Fetch all zones for this concert
-$zones = $conn->query("SELECT * FROM seat_zones WHERE concert_id = '$concert_id' ORDER BY price DESC");
+// Updated Query: You might want to consider how you define "status" at the concert level.
+// If concerts also have a status column, we use that. 
+$sql = "SELECT * FROM concerts ORDER BY concert_date DESC";
+$result = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
@@ -51,7 +31,7 @@ $zones = $conn->query("SELECT * FROM seat_zones WHERE concert_id = '$concert_id'
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Zones | <?php echo htmlspecialchars($concert['concert_name']); ?></title>
+    <title>Manage Events | Concertix Admin</title>
     
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -60,179 +40,147 @@ $zones = $conn->query("SELECT * FROM seat_zones WHERE concert_id = '$concert_id'
         :root {
             --bg-body: #020617;
             --surface: #0f172a;
-            --accent-primary: #3b82f6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+            --accent-primary: #818cf8;
+            --accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --glass-border: rgba(255, 255, 255, 0.1);
             --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #fbbf24;
+            --info: #3b82f6;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            padding: 40px 8%;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 0 8%; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--glass-border); height: 80px; }
+        .logo { font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; }
+        
+        .admin-container { padding: 40px 8%; }
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        .table-wrapper { background: var(--surface); border: 1px solid var(--glass-border); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { background: rgba(255,255,255,0.02); padding: 20px; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; border-bottom: 1px solid var(--glass-border); }
+        .admin-table td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; vertical-align: middle; }
 
-        .header-section { margin-bottom: 40px; }
-        .header-section h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
-        .header-section p { color: var(--text-muted); margin-top: 5px; }
-
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        /* --- Form Styling --- */
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        .card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--accent-primary); }
-
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
-
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            color: white;
-            font-family: inherit;
-            outline: none;
-        }
-
-        input:focus { border-color: var(--accent-primary); }
-
-        .add-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent-gradient);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-            display: flex;
+        /* --- FIXED: Standardized Status Badges --- */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            gap: 8px;
+            width: 85px;         
+            height: 26px;        
+            padding: 0;          
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* --- Table Styling --- */
-        .table-box { overflow: hidden; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--surface); }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 15px 20px; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); }
-        td { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .price-text { font-weight: 800; color: var(--text-main); }
-        .slots-text { font-weight: 600; color: var(--accent-primary); }
-
-        .delete-btn {
-            color: var(--danger);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            padding: 5px;
-            border-radius: 6px;
+        /* Logic for DB 'active' status */
+        .status-active { 
+            background: rgba(34, 197, 94, 0.1); 
+            color: var(--success); 
+            border: 1px solid rgba(34, 197, 94, 0.2); 
         }
-        .delete-btn:hover { background: rgba(239, 68, 68, 0.1); }
 
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+        /* Logic for DB 'inactive' or 'expired' status */
+        .status-inactive { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: var(--danger); 
+            border: 1px solid rgba(239, 68, 68, 0.2); 
         }
+
+        .action-btn-group { display: flex; gap: 8px; align-items: center; }
+        .btn-icon {
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; text-decoration: none; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border); color: var(--text-main); transition: 0.2s;
+        }
+        .btn-icon:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
+        
+        .btn-add { background: var(--accent-gradient); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     </style>
 </head>
 <body>
 
-    <a href="manage-concerts.php" class="nav-back">
-        <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span> 
-        Back to Concerts
+<nav>
+    <a href="dashboard.php" class="logo">
+        <span class="material-symbols-outlined" style="color: var(--accent-primary)">theater_comedy</span>
+        CONCERTIX ADMIN
     </a>
+</nav>
 
-    <div class="header-section">
-        <h1>Seating Zones</h1>
-        <p>Managing categories for <strong><?php echo htmlspecialchars($concert['concert_name']); ?></strong></p>
+<div class="admin-container">
+    <div class="action-bar">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -1px;">Event Management</h1>
+            <p style="color: var(--text-muted);">View concert status and seat availability.</p>
+        </div>
+        <a href="add-concert.php" class="btn-add">
+            <span class="material-symbols-outlined">add_circle</span> New Event
+        </a>
     </div>
 
-    <div class="layout-grid">
-        <div class="card">
-            <h2>Add New Tier</h2>
-            <form method="POST">
-                <div class="form-group">
-                    <label>Zone Name</label>
-                    <input type="text" name="zone_name" placeholder="e.g. VIP Center" required>
-                </div>
-                <div class="form-group">
-                    <label>Price (₱)</label>
-                    <input type="number" step="0.01" name="price" placeholder="0.00" required>
-                </div>
-                <div class="form-group">
-                    <label>Initial Capacity</label>
-                    <input type="number" name="available_slots" placeholder="Total seats" required>
-                </div>
-                <button type="submit" name="add_zone" class="add-btn">
-                    <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
-                    Create Tier
-                </button>
-            </form>
-        </div>
+    <div class="table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Event Details</th>
+                    <th>Date</th>
+                    <th>Venue</th>
+                    <th>Availability Status</th> <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while($row = $result->fetch_assoc()): 
+                    // Fetch if any zone is active for this concert to determine overall status
+                    $cid = $row['id'];
+                    $status_check = $conn->query("SELECT status FROM seat_zones WHERE concert_id = $cid LIMIT 1");
+                    $status_row = $status_check->fetch_assoc();
+                    $db_status = $status_row['status'] ?? 'inactive'; 
 
-        <div class="table-box">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tier Name</th>
-                        <th>Price</th>
-                        <th>Tickets Left</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($zones->num_rows > 0): ?>
-                        <?php while($z = $zones->fetch_assoc()): ?>
-                        <tr>
-                            <td style="font-weight: 700;"><?php echo htmlspecialchars($z['zone_name']); ?></td>
-                            <td class="price-text">₱<?php echo number_format($z['price'], 2); ?></td>
-                            <td class="slots-text"><?php echo $z['available_slots']; ?></td>
-                            <td>
-                                <a href="?id=<?php echo $concert_id; ?>&delete_id=<?php echo $z['id']; ?>" 
-                                   class="delete-btn"
-                                   onclick="return confirm('Delete this tier? This may affect existing tickets.')">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                                No tiers created yet. Use the form on the left to start.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    $img = !empty($row['image']) ? "../assets/images/concerts/".$row['image'] : "../assets/images/Concert.png";
+                ?>
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img src="<?php echo $img; ?>" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover; border: 1px solid var(--glass-border);">
+                            <div>
+                                <div style="font-weight: 800;"><?php echo htmlspecialchars($row['concert_name']); ?></div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">ID: #<?php echo $row['id']; ?></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><?php echo date('M d, Y', strtotime($row['concert_date'])); ?></td>
+                    <td style="color: var(--text-muted);"><?php echo htmlspecialchars($row['venue']); ?></td>
+                    <td>
+                        <div class="status-pill <?php echo ($db_status === 'active') ? 'status-active' : 'status-inactive'; ?>">
+                            <?php echo ucfirst($db_status); ?>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-btn-group">
+                            <a href="manage-zones.php?id=<?php echo $row['id']; ?>" class="btn-icon" style="color: var(--accent-primary);" title="Manage Tiers">
+                                <span class="material-symbols-outlined">event_seat</span>
+                            </a>
+                            <a href="edit-concert.php?id=<?php echo $row['id']; ?>" class="btn-icon" style="color: var(--warning);" title="Edit Info">
+                                <span class="material-symbols-outlined">edit</span>
+                            </a>
+                            <a href="?delete_id=<?php echo $row['id']; ?>" class="btn-icon" style="color: var(--danger);" title="Delete" onclick="return confirm('Careful! This will remove the event and all bookings.')">
+                                <span class="material-symbols-outlined">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
     </div>
+</div>
 
 </body>
 </html>

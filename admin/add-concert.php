@@ -27,9 +27,7 @@ if (isset($_POST['add'])) {
         $ext = pathinfo($_FILES['concert_image']['name'], PATHINFO_EXTENSION);
         $image_name = time() . "_" . uniqid() . "." . $ext;
         
-        // Using realpath to prevent directory navigation errors
         $target_dir = realpath(__DIR__ . "/../assets/images/concerts/");
-        
         if ($target_dir) {
             $target_file = $target_dir . DIRECTORY_SEPARATOR . $image_name;
             if (!move_uploaded_file($_FILES['concert_image']['tmp_name'], $target_file)) {
@@ -38,7 +36,6 @@ if (isset($_POST['add'])) {
         }
     }
 
-    // Prepare statement: All 6 fields are now strings ('ssssss')
     $stmt = $conn->prepare(
         "INSERT INTO concerts (concert_name, concert_date, concert_time, venue, description, image)
          VALUES (?, ?, ?, ?, ?, ?)"
@@ -76,7 +73,7 @@ if (isset($_POST['add'])) {
             --bg-body: #f8fafc;
             --surface: #ffffff;
             --accent-primary: #6366f1;
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
             --text-main: #0f172a;
             --text-muted: #64748b;
             --glass-border: rgba(0, 0, 0, 0.05);
@@ -94,72 +91,80 @@ if (isset($_POST['add'])) {
             --nav-bg: rgba(2, 6, 23, 0.8);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.3s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.2s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            min-height: 100vh;
+        nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 8%; background: var(--nav-bg); backdrop-filter: blur(12px); 
+            position: sticky; top: 0; z-index: 1000; height: 80px; border-bottom: 1px solid var(--glass-border); 
         }
-
-        nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 8%; background: var(--nav-bg); backdrop-filter: blur(12px);
-            position: sticky; top: 0; z-index: 1000; height: 80px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
         .logo { font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); text-decoration: none; }
-        
-        .container { padding: 60px 5%; display: flex; justify-content: center; }
 
-        .form-card {
-            background: var(--surface);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        .container { padding: 60px 5%; display: flex; justify-content: center; }
+        .form-card { 
+            background: var(--surface); border: 1px solid var(--glass-border); 
+            border-radius: 28px; padding: 40px; width: 100%; max-width: 600px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
         }
 
         .form-header { margin-bottom: 30px; }
-        .form-header h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
-        .form-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+        .form-header h2 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1.5px; }
+        .form-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 5px; }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px; }
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        input, textarea {
-            width: 100%; padding: 14px 18px; border-radius: 12px;
-            background: var(--bg-body); border: 1px solid var(--glass-border);
-            color: var(--text-main); font-family: inherit; font-weight: 600; font-size: 0.95rem;
-            resize: none;
+        input, textarea { 
+            width: 100%; padding: 16px 18px; border-radius: 14px; 
+            background: rgba(0, 0, 0, 0.15); border: 1px solid var(--glass-border); 
+            color: var(--text-main); font-family: inherit; font-weight: 600; font-size: 0.95rem; 
         }
+        input:focus, textarea:focus { border-color: var(--accent-primary); outline: none; background: rgba(0,0,0,0.2); }
 
-        input:focus, textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-
-        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
         .file-custom {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            padding: 14px; border: 2px dashed var(--glass-border); border-radius: 12px;
-            cursor: pointer; color: var(--text-muted); font-weight: 700;
+            display: flex; 
+            flex-direction: row; 
+            align-items: center;       
+            justify-content: center; 
+            padding: 22px 25px;        
+            border: 2px dashed var(--glass-border); 
+            border-radius: 14px; 
+            cursor: pointer; 
+            color: var(--text-muted); 
+            background: rgba(0, 0, 0, 0.1); 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            letter-spacing: 1.5px;
+            width: 100%;
+            text-align: center;
         }
-        .file-custom:hover { border-color: var(--accent-primary); background: rgba(99, 102, 241, 0.05); }
 
+        .file-custom b { font-weight: 800; white-space: nowrap; }
+
+        .file-custom:hover { 
+            border-color: var(--accent-primary); 
+            color: var(--accent-primary); 
+            background: rgba(129, 140, 248, 0.05); 
+        }
+
+        /* ENHANCED: Publish Button Font Weight and Family */
         .btn-submit {
-            width: 100%; padding: 16px; border-radius: 12px; border: none;
+            width: 100%; padding: 18px; border-radius: 16px; border: none;
             background: var(--accent-gradient); color: white;
-            font-weight: 800; font-size: 1rem; cursor: pointer;
-            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+            font-family: 'Plus Jakarta Sans', sans-serif; /* Explicit font family */
+            font-weight: 800; /* Set to match the label's bold aesthetic while remaining "Normal" relative to header */
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; /* Matches the tight, modern feel of the labels */
+            cursor: pointer; 
             margin-top: 10px;
+            box-shadow: 0 10px 20px -5px rgba(129, 140, 248, 0.4);
+            transition: 0.3s all ease;
         }
+        .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 15px 30px -5px rgba(129, 140, 248, 0.5); }
 
-        .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
-        .alert { padding: 15px; border-radius: 12px; margin-bottom: 25px; font-weight: 700; font-size: 0.9rem; text-align: center; }
-        .alert-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .alert { padding: 15px; border-radius: 12px; margin-bottom: 25px; font-weight: 700; font-size: 0.9rem; text-align: center; background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
     </style>
 </head>
 <body class="dark">
@@ -169,9 +174,10 @@ if (isset($_POST['add'])) {
         <span class="material-symbols-outlined" style="color: var(--accent-primary)">theater_comedy</span>
         CONCERTIX ADMIN
     </a>
-    <div style="display: flex; gap: 15px; align-items: center;">
-        <a href="dashboard.php" style="text-decoration:none; color:var(--text-muted); font-weight:700; font-size:0.8rem;">BACK TO DASHBOARD</a>
-    </div>
+    <a href="manage-concerts.php" style="text-decoration:none; color:var(--text-muted); font-weight:700; font-size:0.8rem; display: flex; align-items: center; gap: 5px;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+        BACK TO DASHBOARD
+    </a>
 </nav>
 
 <main class="container">
@@ -182,19 +188,16 @@ if (isset($_POST['add'])) {
         </div>
 
         <?php if ($message): ?>
-            <div class="alert alert-success"><?php echo $message; ?></div>
+            <div class="alert"><?php echo $message; ?></div>
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>Concert Poster / Image</label>
-                <div class="file-input-wrapper">
-                    <input type="file" name="concert_image" id="concert_image" style="display: none;" onchange="updateFileName()">
-                    <label for="concert_image" class="file-custom" id="file-label">
-                        <span class="material-symbols-outlined">image</span>
-                        Choose Image File
-                    </label>
-                </div>
+                <input type="file" name="concert_image" id="concert_image" style="display: none;" onchange="updateFileName()">
+                <label for="concert_image" class="file-custom" id="file-label">
+                    <b>Choose Image File</b>
+                </label>
             </div>
 
             <div class="form-group">
@@ -233,12 +236,11 @@ if (isset($_POST['add'])) {
         const input = document.getElementById('concert_image');
         const label = document.getElementById('file-label');
         if (input.files.length > 0) {
-            label.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${input.files[0].name}`;
+            label.innerHTML = `<b style="color:var(--accent-primary)">${input.files[0].name}</b>`;
             label.style.borderColor = 'var(--accent-primary)';
-            label.style.color = 'var(--accent-primary)';
+            label.style.borderStyle = 'solid';
         }
     }
-
     if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
 </script>
 </body>

@@ -46,7 +46,7 @@ if (isset($_SESSION['user_id'])) {
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); line-height: 1.6; }
 
         nav {
             display: flex; justify-content: space-between; align-items: center;
@@ -64,7 +64,6 @@ if (isset($_SESSION['user_id'])) {
             padding: 10px 24px; border-radius: 10px; font-weight: 700;
         }
 
-        /* Theme Switch Styling */
         .theme-switch {
             width: 50px; height: 26px; background: var(--glass-border);
             border-radius: 50px; position: relative; cursor: pointer;
@@ -79,13 +78,13 @@ if (isset($_SESSION['user_id'])) {
         body.dark .switch-dot { transform: translateX(24px); }
 
         .hero {
-            height: 50vh; display: flex; flex-direction: column; justify-content: center;
+            height: 60vh; display: flex; flex-direction: column; justify-content: center;
             align-items: center; text-align: center; color: white; padding: 2rem;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('<?php echo $root; ?>assets/images/Concert.png');
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('<?php echo $root; ?>assets/images/Concert.png');
             background-size: cover; background-position: center;
         }
 
-        .container { padding: 60px 8%; }
+        .container { padding: 80px 8%; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
 
         .concert-card {
@@ -95,7 +94,8 @@ if (isset($_SESSION['user_id'])) {
         }
 
         .card-image-wrapper { width: 100%; height: 180px; background: #000; overflow: hidden; }
-        .card-image { width: 100%; height: 100%; object-fit: cover; }
+        .card-image { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .concert-card:hover .card-image { transform: scale(1.1); }
         .card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
 
         .card-title {
@@ -120,8 +120,42 @@ if (isset($_SESSION['user_id'])) {
             display: flex; align-items: center; justify-content: center; border-radius: 50%;
             background: rgba(99, 102, 241, 0.08); transition: all 0.3s ease;
         }
-
         .btn-arrow:hover { background: var(--accent-primary); color: #fff !important; transform: translateX(5px); }
+
+        /* --- ABOUT SECTION STYLING --- */
+        .about-section {
+            background: var(--surface);
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            padding: 60px;
+            margin-top: 60px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-text h2 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 20px; }
+        .about-text h2 span { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .about-text p { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 30px; }
+
+        .feature-list { display: flex; flex-direction: column; gap: 20px; }
+        .feature-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 20px; border-radius: 16px; background: var(--bg-body);
+            border: 1px solid var(--glass-border);
+        }
+        .feature-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            background: var(--accent-gradient); color: white;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .feature-info h4 { font-weight: 800; font-size: 0.95rem; }
+        .feature-info p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+        @media (max-width: 992px) {
+            .about-section { grid-template-columns: 1fr; padding: 40px; }
+        }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -157,14 +191,15 @@ if (isset($_SESSION['user_id'])) {
 </nav>
 
 <section class="hero">
-    <h1 style="font-size: 3rem; letter-spacing: -2px; font-weight: 800;">Feel the Music.<br>Live the Moment.</h1>
+    <h1 style="font-size: 4rem; letter-spacing: -3px; font-weight: 800; line-height: 1.1;">Feel the Music.<br>Live the Moment.</h1>
+    <p style="margin-top: 20px; font-size: 1.1rem; opacity: 0.9;">Secure your spot at the most anticipated live events.</p>
 </section>
 
 <main class="container">
-    <h2 style="font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; font-size: 2rem;">UPCOMING CONCERTS</h2>
+    <h2 style="font-weight: 800; margin-bottom: 40px; letter-spacing: -1.5px; font-size: 2.2rem;">Upcoming Concerts</h2>
     <div class="grid">
         <?php
-        $query = "SELECT * FROM concerts ORDER BY concert_date ASC LIMIT 4";
+        $query = "SELECT * FROM concerts WHERE concert_date >= CURDATE() ORDER BY concert_date ASC LIMIT 4";
         $result = $conn->query($query);
         while ($row = $result->fetch_assoc()):
             $img = !empty($row['image']) ? "assets/images/concerts/".$row['image'] : "assets/images/Concert.png";
@@ -174,7 +209,7 @@ if (isset($_SESSION['user_id'])) {
                     <img src="<?php echo $root . $img; ?>" class="card-image">
                 </div>
                 <div class="card-content">
-                    <span style="font-size: 0.65rem; color: var(--accent-primary); font-weight: 800; text-transform: uppercase;">
+                    <span style="font-size: 0.65rem; color: var(--accent-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
                         <?php echo date('M d, Y', strtotime($row['concert_date'])); ?>
                     </span>
                     <h3 class="card-title"><?php echo htmlspecialchars($row['concert_name']); ?></h3>
@@ -192,6 +227,39 @@ if (isset($_SESSION['user_id'])) {
             </div>
         <?php endwhile; ?>
     </div>
+
+    <div class="about-section">
+        <div class="about-text">
+            <h2>About <span>Concertix</span></h2>
+            <p>Concertix is a next-generation ticketing platform built for fans who live for live music. We bridge the gap between world-class artists and their dedicated audience by providing a seamless, secure, and lightning-fast booking experience.</p>
+            <p>Our mission is simple: to make sure you spend less time worrying about tickets and more time enjoying the front row.</p>
+            <a href="<?php echo $root; ?>auth/register.php" class="btn-register" style="display: inline-block; text-decoration: none;">Join the Community</a>
+        </div>
+        
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon"><span class="material-symbols-outlined">bolt</span></div>
+                <div class="feature-info">
+                    <h4>Instant Booking</h4>
+                    <p>Secure your favorite seats in under 60 seconds.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon"><span class="material-symbols-outlined">verified_user</span></div>
+                <div class="feature-info">
+                    <h4>Verified Tickets</h4>
+                    <p>100% authentic tickets directly from event organizers.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon"><span class="material-symbols-outlined">confirmation_number</span></div>
+                <div class="feature-info">
+                    <h4>Seamless Access</h4>
+                    <p>Digital tickets delivered instantly to your account.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <div class="modal-overlay" id="detailsModal" onclick="closeDetails()">
@@ -205,7 +273,7 @@ if (isset($_SESSION['user_id'])) {
             
             <p id="m-desc" style="line-height: 1.7; color: var(--text-muted); margin-bottom: 30px; white-space: pre-line;"></p>
             
-            <button onclick="closeDetails()" style="width: 100%; padding: 16px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer;">Close Details</button>
+            <button onclick="closeDetails()" style="width: 100%; padding: 16px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">Close Details</button>
         </div>
     </div>
 </div>
@@ -214,10 +282,8 @@ if (isset($_SESSION['user_id'])) {
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
 
-    // Load theme
     if (localStorage.getItem('theme') === 'light') body.classList.remove('dark');
 
-    // Toggle logic
     themeToggle.addEventListener('click', () => {
         body.classList.toggle('dark');
         localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
